@@ -252,6 +252,6 @@ var updatePano = function () {
 	setUpdateTimeout();
 }
 var setUpdateTimeout = function () {
-	exports.updatingInterval = setTimeout(updatePano, 30000);
+	exports.updatingInterval = setTimeout(updatePano, 40000);
 }
 updatePano();
