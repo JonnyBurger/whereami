@@ -41,5 +41,5 @@
           window.guessLatLng = event.latLng;
           setGuessMarker(window.guessLatLng);
         });
-
+        window.minimap = mMap
       };

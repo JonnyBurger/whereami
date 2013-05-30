@@ -3,7 +3,8 @@
       //
 
       function rminitialize() {
-
+        locLatLongs = window.locLL.toString();
+        guessLatLongs = window.guessLatLng.toString();
         var currentLLArr = locLatLongs.replace(/[\])}[{(]/g,'').split(',');
         var GuessLLArr = guessLatLongs.replace(/[\])}[{(]/g,'').replace(/\s/g, "").split(',');
         var actualLtLng = new google.maps.LatLng(currentLLArr[0],currentLLArr[1]);
@@ -31,7 +32,11 @@
         });
 
         // To add the marker to the map, call setMap();
-        actualMarker.setMap(map);
-        guessMarker.setMap(map);
-
+        actualMarker.setMap(minimap);
+        guessMarker.setMap(minimap);
+        // All markers should be visible
+        var bounds = new google.maps.LatLngBounds();
+        bounds.extend(actualLtLng);
+        bounds.extend(guessLtLng);
+        minimap.fitBounds(bounds);
       };

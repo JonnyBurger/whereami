@@ -1,0 +1,165 @@
+<!DOCTYPE html> 
+<html lang='en-us'>
+<head>
+  <meta charset='utf-8'>
+  <title>Whereami</title>
+  <link rel='stylesheet' href='css/bootstrap.css' />
+  <link rel='stylesheet' href='css/style.css' /> 
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+  <script src='https://maps.googleapis.com/maps/api/js?key=AIzaSyD6e6jip4Hzjzq24sxAy4R47kjS3FpmTzY&sensor=false&libraries=geometry'></script>
+  <script src='js/rnd.js'></script>
+  <script src='js/minimap.js'></script>
+  <script src='js/streetviewmap.js'></script>
+  <script src='js/roundmap.js'></script>
+  <script src='/socket.io/socket.io.js'></script>
+  <script src='/js/socket.js'></script>
+  <script type='text/javascript'>
+  GUESSMADE = false;
+  $(document).ready(function() {
+    var name = prompt('Your name:');
+    socket.emit('register', {name: name});
+    //
+    // Setup
+    //
+
+    var round = 1;
+    var points = 0;
+    var roundScore = 0;
+    var totalScore = 0;
+
+    //
+    //  Init maps
+    //
+
+    svinitialize();
+    mminitialize();
+
+
+    //
+    // Scoreboard & Guess button event
+    //
+    function evaluate() {
+      GUESSMADE = true;
+             // Calculate distance between points function
+        function calcDistance (fromLat, fromLng, toLat, toLng) {
+          return google.maps.geometry.spherical.computeDistanceBetween(new google.maps.LatLng(fromLat, fromLng), new google.maps.LatLng(toLat, toLng));
+        };
+
+        // Reset marker function
+        function resetMarker() {
+            //Reset marker
+            if (guessMarker != null) {
+                guessMarker.setMap(null);
+            }
+        };
+
+        // Explode latLng variables into separate variables for calcDistance function
+        locLatLongs = window.locLL.toString();
+        guessLatLongs = window.guessLatLng.toString();
+        
+        // Make arrays and clean from (){} characters
+        window.locArray = locLatLongs.replace(/[\])}[{(]/g,'').split(',');
+        window.guessArray = guessLatLongs.replace(/[\])}[{(]/g,'').split(',');
+
+        // Calculate distance between points, and convert to kilometers
+        distance = Math.ceil(calcDistance(window.locArray[0], window.locArray[1], window.guessArray[0], window.guessArray[1]) / 1000);
+        socket.emit('marker-set', {distance: distance})
+        // Calculate points awarded via guess proximity
+        function inRange(x, min, max) {
+            return (min <= x && x <= max);
+        };
+        socket.emit('set-marker', {distance: distance, id: window.id});
+        rminitialize();
+    }
+    $('#guessButton').click(function (){
+
+      if (window.guessLatLng && !GUESSMADE){
+          evaluate();
+
+      } else if (GUESSMADE) {
+          alert('You have already guessed that location.')
+      }
+      else {
+          alert('You need to make a guess first!');
+      }
+
+      window.guessLatLng = '';
+
+    });
+
+    // End of round continue button click
+    $('#roundEnd').on('click', '.closeBtn', function () {
+      $('#roundEnd').fadeOut(500);
+    });
+
+    // End of game 'play again' button click
+    $('#endGame').on('click', '.playAgain', function () {
+      window.location.reload();
+    });
+
+    
+
+  });
+
+  socket.on('get-points', function (data) {
+    console.log(data)
+    var totalScore = $('.totalScore b')
+    totalScore.text(  parseFloat(totalScore.text()) + data.points );
+    $('.roundScore b').text(data.points);
+    if (data.points == 0) {
+      setMessage('0 points! Sorry, too far away!')
+    }
+    else {
+      setMessage('+' + data.points + ' points!')
+    }
+  });
+  socket.on('registered', function (data) {
+    window.id = data.id;
+  });
+  socket.on('leaderboard', function (data) {
+    var table = $('<table>')
+    $.each(data, function (key, value) {
+      var row = $('<tr>', { 'data-userid': value[0] });
+      $('<td>').text(key+1+".").appendTo(row);
+      $('<td>').text(value[1].name).appendTo(row);
+      $('<td>').text(value[1].points).appendTo(row);
+      row.appendTo(table);
+    });
+    $('#leaderboard').html(table);
+  });
+  socket.on('new-round', function(data) {
+    setMessage(data.winner[1].name + ' won! New round.');
+    points = 0;
+    roundScore = 0;
+    totalScore = 0;
+    $('.roundScore b').text(0);
+    $('.totalScore b').text(0);
+  })
+  function setMessage (text) {
+    var a = $('<div>', {
+      class: 'message'
+    }).text(text).appendTo('body');
+    setTimeout(function() {
+      $(a).remove();
+    }, 1000)
+  }
+  </script>
+</head> 
+<body>
+  <div id='content'>
+    <div id="roundEnd"></div>
+    <div id="endGame"></div>
+    <div id='scoreBoard'>
+      <span class='round'>Current Round: <b>1/5</b></span><br/>
+      <span class='roundScore'>Last Round Score: <b>0</b></span><br/>
+      <span class='totalScore'>Total Score: <b>0</b></span>
+    </div>
+    <div id='miniMap'></div>
+    <div id='guessButton' class="btn btn-large btn-danger">Make Your Guess</div>
+    <div id='timeleft'>30</div>
+    <div id='leaderboard'></div>
+    <div id='pano'></div>
+    <div id="roundMap"></div>
+  </div>
+</body>
+</html>
