@@ -31,5 +31,6 @@ html,body { width: 100%; height: 100%; overflow: hidden;}
 #endGame { position: absolute; top: 50%; left: 50%; width: 400px; margin: -190px 0 0 -240px; padding: 20px; background: #EFEFEF; text-align: center; display: none; z-index: 1000; }
 #timeleft { position: absolute; z-index: 1000; font-size: 8em; text-shadow: 0 0 5px white; right: 20px; width: 300px; top: 440px; text-align: center;}
 #leaderboard { position: absolute; z-index: 1000; right: 20px; top: 500px; width: 280px; background: rgba(0,0,0,0.3); padding: 10px; color: white;}
+#leaderboard table { width: 300px; }
 @-webkit-keyframes cool { 0% { opacity: 0; -webkit-transform: scale(0,0);  }  50% { opacity: 1; -webkit-transform: scale(1,1); } 100% { opacity: 0;  -webkit-transform: scale(2,2);} }
 .message { position: absolute; width: 100%; height: 3em; font-size: 3em; text-align: center; top: 45%; -webkit-animation: cool 1s; z-index:1000; text-transform: uppercase; color: white; -webkit-animation-fill-mode: forwards;}
